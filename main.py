@@ -4,7 +4,7 @@ import numpy as np
 from email.message import EmailMessage
 import smtplib
 import email.message
-from config import steamid, mail_subject, mail_from, mail_to, mail_password
+from config import steamid, mail_subject, mail_from, mail_to, mail_password, watchlist
 
 def get_inventory() -> dict:
     currency = "3"
@@ -29,6 +29,8 @@ def send_mail():
     items = get_inventory()
 
     tds = ""
+    welements = ""
+    _watchlist = {}
 
     for item in items:
         
@@ -40,6 +42,11 @@ def send_mail():
             total_price = items[item]["total_price"]
             tds+=f"<tr><td>{item}</td><td>{amount}</td><td>{price}</td><td>{total_price}</td></tr>"
 
+    for witem in watchlist:
+        _watchlist[witem] = requests.get(f"https://steamcommunity.com/market/priceoverview/?appid=730&market_hash_name={witem}&currency=3").json()
+
+    for _witem in _watchlist:
+        welements += f"<h4>{_witem} : {_watchlist[_witem]['lowest_price']}</h4>"
 
         html = f"""
         <h1>See your daily inventory!</h1>
@@ -55,6 +62,10 @@ def send_mail():
             </tr>
             {tds}
         </table>
+        <br>
+        <h1>Watchlist</h1>
+        <hr>
+        {welements}
         """
     
     msg = email.message.Message()
